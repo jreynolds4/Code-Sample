@@ -1,0 +1,72 @@
+
+<html>
+    <head>
+      <meta charset="utf-8">
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+      <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+      <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+      <link rel="stylesheet" href="/resources/demos/style.css">
+      <script>
+          $(function() {
+              $( "#date1" ).datepicker({ dateFormat: 'yy-mm-dd' });
+              $( "#date2" ).datepicker({ dateFormat: 'yy-mm-dd' });
+          });
+
+
+          function commit(){
+              var bool = confirm("Inky says are you sure you want to commit these changes? All changes will be finalized");
+              if (bool == true){
+                  document.getElementById("myForm").action ="/print_return/commit";
+                  document.getElementById("myForm").submit();
+              }
+          }
+
+          $(document).ready(function(){
+              <% if $verify_commit == true %>
+                    alert("Data already committed for this date range.");
+              <% elsif $success == true %>
+                    alert("Data successfully committed.");
+              <% elsif $empty_date == true %>
+                    alert("Invalid date range.");
+              <% end %>
+          });
+
+      </script>
+    </head>
+    <body>
+
+
+
+    <title> Printer Returns</title>
+    <h1>Printer Returns</h1>
+        <form id="myForm" class="print_return_form">
+            Start: <input type="text" id="date1" name="date1" required value=<%= params[:date1] %>>
+            End: <input type="text" id="date2" name="date2" required value=<%= params[:date2] %>>
+
+          <%= button_tag('Select Date Range', type: 'button', onclick: "this.form.submit()", name: 'confirm', class: 'confirm') %>
+          <br />
+          <br />
+          <%= button_tag('Commit', type: 'button', onclick: "commit()", name: 'commit_btn', class: 'commit_btn') %>
+          <br />
+          <br />
+
+        </form>
+        <table id="table" class= "class_wrapper" style="width: 75%;">
+          <tr class="titles">
+            <th><strong>Printer ID</strong></th>
+            <th><strong>Vendor</strong></th>
+            <th><strong>Returns</strong></th>
+            <th><strong>Date</strong></th>
+          </tr>
+          <% @info.each { |vendor| %>
+          <tr class = "returns">
+            <td><%= vendor[0] %></td>
+            <td class = "vendor_names"><%= vendor[1] %></td>
+            <td><%= vendor[2] %></td>
+            <td><%= Date.strptime(vendor[4],'%B %Y') %></td>
+          </tr>
+
+          <% } %>
+        </table>
+    </body>
+</html>

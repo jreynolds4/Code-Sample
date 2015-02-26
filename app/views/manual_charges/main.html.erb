@@ -1,0 +1,395 @@
+<script type="text/javascript">
+	var index = 1;
+
+	function addRow(){
+
+		var id = '<td><input type="text" name="orderid[' + index + ']"></td>';
+		var reason = '<td><select name="reason[' + index + ']" onchange="other(this.value, this);" id="otherLabel">' + '<% @reasons.each do |reason| %><%= options_for_select([reason[1]]) %><% end %>' + '</select>';
+		var otherInput = '<td><input name="other[' + index + ']" type="text" class="otherID" style="display:none;"></td>';
+		var amount = '<td id="newCols"><input type="text" name="amount[' + index + ']"></td>';
+        //var statement_dt = '<td><select name="statement_dt[' + index + ']">' + '<% for i in 0..1 %><%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %><% end %>' + '</select></td>';
+        var statement_dt = '<td><select name="statement_dt[' + index + ']">' + '<% if Date.today.day > 11 %><% for i in 1..2 %><%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %><% end %><% else %><% for i in 0..1 %><%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %><% end %><% end %>' + '</select></td>';
+        var del = '<td><button id="deleteButton" type="button" onclick="deleteRow(this)">Delete</button></td>';
+
+		$("table").append('<tr>' + id + reason + otherInput + amount + statement_dt + del + '</tr>');
+
+		index = index + 1;
+	}
+
+    function addRowAll(){
+        var vend = '<td><select name="vend[' + index + ']"><option> </option><% @vendors.each do |vendor| %><%= options_for_select([vendor[1]], @vendor) %><% end %></select></td>';
+        var id = '<td><input type="text" name="orderid[' + index + ']"></td>';
+        var reason = '<td><select name="reason[' + index + ']" onchange="other(this.value, this);" id="otherLabel">' + '<% @reasons.each do |reason| %><%= options_for_select([reason[1]]) %><% end %>' + '</select></td>';
+        var otherInput = '<td><input name="other[' + index + ']" type="text" class="otherID" style="display:none;"></td>';
+        var amount = '<td id="newCols"><input type="text" name="amount[' + index + ']"></td>';
+        var del = '<td><button id="deleteButton" type="button" onclick="deleteRow(this)">Delete</button></td>';
+        var statement_dt = '<td><select name="statement_dt[' + index + ']">' + '<% if Date.today.day > 11 %><% for i in 1..2 %><%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %><% end %><% else %><% for i in 0..1 %><%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %><% end %><% end %>' + '</select></td>';
+
+        $("table").append('<tr>' + vend + id + reason + otherInput + amount + statement_dt + del + '</tr>');
+
+        index = index + 1;
+    }
+
+    function deleteRow(r){
+        var bool = confirm("Are you sure?");
+        if (bool == true){
+            var i = r.parentNode.parentNode.rowIndex;
+            $(r.parentNode.parentNode).remove();
+        }
+    }
+
+	function confirmation(){
+		var bool = confirm("Are you sure?");
+		if (bool == true){
+            document.getElementById("myForm").action ="/manual_charges/confirm_sub";
+			document.getElementById("myForm").submit();
+		}
+	}
+
+    function confirmSubmit(){
+        var bool = confirm("Are you sure?");
+        if (bool == true){
+            return true;
+        }
+        return false;
+    }
+
+	function statusChange(){
+		document.getElementById("myForm").submit();
+	}
+
+	function other(val, r){
+
+		var element = document.getElementsByClassName('others');
+	 	var i = 1;
+
+	 	var rand = r.parentNode.parentNode.rowIndex;
+	 	var bool = false;
+
+	 	for(i = 1; i <= element.length; i++){
+	 		
+	 		if(rand == i){
+	 			bool = true;
+	 			if(val=='Other')
+			   		element[i-1].style.display='block';
+			 	else  
+				   	element[i-1].style.display='none';
+	 		}
+	 	}
+
+	 	var newElements = document.getElementsByClassName('otherID');
+	 	var len = element.length + newElements.length;
+	 	var idx = 0;
+
+	 	for(k = i; k <= len; k++){
+	 		
+	 		if(rand == k){
+	 			if(val=='Other')
+			   		newElements[idx].style.display='block';
+			 	else  
+				   	newElements[idx].style.display='none';
+	 		}
+	 		idx++;
+	 	}
+
+	}
+
+    function newSelection(){
+        document.getElementById('vendorSelection');
+    }
+
+
+	$(document).ready(function(){
+	    $('#paid').click(function(){
+		console.log("Entered paid function");    
+	    	var bool = confirm("Are you sure?");
+
+	    	if (bool == true){
+
+	    		document.getElementById("myForm").action ="/manual_charges/mark_paid";
+			console.log("set path to /manual_charges/mark_paid");	
+				document.getElementById("myForm").submit();
+			console.log("submitted form");
+			}	
+
+	    });
+
+	    setTimeout(function() {
+		  $("#notify_insert_update").fadeOut().empty();
+			}, 3000);
+	    setTimeout(function() {
+		  $("#notify_delete").fadeOut().empty();
+			}, 3000);
+
+        document.getElementById('myForm').onsubmit = function() {
+            return confirmSubmit();
+        }
+
+        <% if $invalid == true %>
+            alert('Invalid insert!');
+        <% end %>
+
+	});
+
+
+</script>
+
+<html>
+	<title>Manual Charges</title>
+	<div class= "head">
+		<h1>Manual Charges</h1>
+		<% if $insert_confirm == true %>
+			<p id='notify_insert_update'>&nbsp;Item(s) successfully inserted!</p>
+		<% elsif @delete_confirm == true %>
+			<p id='notify_delete'>&nbsp;Item successfully deleted!</p>
+		<% end %>
+
+	</div>
+
+
+	<body>
+        <p></p>
+		<% if @vendor == nil
+				@vendor = "all" # default value 
+		   end %>
+
+		<form id="myForm" method="post" action="/manual_charges/main">
+			<div class="subhead">
+				<select name="vendors" onchange="statusChange()">
+					<option value="all">All Vendors</option>
+					<% @vendors.each do |vendor| %>
+						<%= options_for_select([vendor[1]], @vendor) %>
+					<% end %>
+
+				</select>
+				<input class="button" type="button" value="Mark Paid" id="paid">
+			</div>
+            </br>
+            <div>
+
+              Sort by:
+              <select name="sort" onchange="statusChange()">
+                <% @sorts.each do |sort| %>
+                    <%= options_for_select([sort], @sort) %>
+                <% end %>
+
+              </select>
+            </div>
+
+
+			</br>
+			<table class="box" id="myTable">
+
+				<% if @vendor == "all" %>
+
+					<tr class="titles">
+						<td><strong>Vendor</strong></td>
+						<td><strong>Order ID</strong></td>
+						<td><strong>Reason</strong></td>
+                        <td><strong>Description</strong></td>
+						<td><strong>Amount</strong></td>
+                        <td><strong>Statement Date</strong></td>
+
+
+					</tr>
+					<%  @idx = -1
+
+                       @tmp_v = "vend["
+
+						@tmp_o = "orderid["
+						@tmp_r = "reason["
+						@tmp_a = "amount["
+
+						@tmp_other = "other["
+
+                        @statement = "statement_dt["
+
+                        @row_id = "id["
+
+						@info.each do |data| %>
+						<tr>
+
+                            <td><select name=<%= @tmp_v + @idx.to_s + "]"%> onchange="newSelection();" class="vendorSelection">
+
+                                <% @vendors.each do |vend| %>
+                                    <%= options_for_select([vend[1]], data[4]) %>
+                                <% end %>
+
+                              </select>
+                            </td>
+							<td id="columns"><%= text_field_tag(@tmp_o + @idx.to_s + "]", data[1], class: "row") %></td>
+							<td id="columns"><select name=<%= @tmp_r + @idx.to_s + "]"%> onchange="other(this.value,this);" class="row">
+
+                                <% @reasons.each do |reason| %>
+									<%= options_for_select([reason[1]], data[2]) %>
+								<% end %>
+
+								</select>
+                            </td>
+                            <td><%if data[5] != ""%>
+                                    <%= text_field_tag(@tmp_other + @idx.to_s + "]",data[5] ,class: "others", style: 'display:block;') %>
+                                 <% else %>
+                                    <%= text_field_tag(@tmp_other + @idx.to_s + "]",data[5] ,class: "others", style: 'display:none;') %>
+                                <% end %>
+                            </td>
+							<td id="columns"><%= text_field_tag(@tmp_a + @idx.to_s + "]", "$ " + data[3], class: "row") %></td>
+                            <td>
+                              <select name= <%=@statement + @idx.to_s + "]"%>>
+
+                                <% if Date.parse(data[7]).to_date.day > 11 %>
+                                    <% for i in 1..2 %>
+                                        <%= options_for_select([(Date.parse(data[7]).to_date>>i).strftime('%B %Y')], Date.parse(data[6]).to_date.strftime('%B %Y')) %>
+                                    <% end %>
+                                <% else %>
+                                    <% for i in 0..1 %>
+                                        <%= options_for_select([(Date.parse(data[7]).to_date>>i).strftime('%B %Y')], Date.parse(data[6]).to_date.strftime('%B %Y')) %>
+                                    <% end %>
+                                <% end %>
+                              </select>
+                            </td>
+							<td><%= button_tag("Delete", {class: "deleteButton", type:'submit', name:"delete", value:data[0]}) %></td>
+                            <td><%= text_field_tag(@row_id + @idx.to_s + "]",data[0], style: 'display:none;') %></td>
+						
+						</tr>
+					<% 
+							@idx = @idx - 1
+						end %>
+
+                  <tr id = "newInfo">
+                    <td><select name="vend[0]"><option> </option><% @vendors.each do |vendor| %><%= options_for_select([vendor[1]], @vendor) %><% end %></select></td>
+                    <td><input id="in" type="text" name="orderid[0]" class="newRow"></td>
+                    <td>
+                      <select name="reason[0]" onchange="other(this.value, this);" id="otherLabel">
+                        <% @reasons.each do |reason| %>
+                            <%= options_for_select([reason[1]]) %>
+                        <% end %>
+                      </select>
+                    </td>
+                    <td><input name="other[0]" type="text" class="otherID" style='display:none;'></td>
+                    <td id="newCols"><input type="text" name="amount[0]" class="newRow"></td>
+                    <td>
+                      <select name="statement_dt[0]">
+                        <% if Date.today.day > 11 %>
+                            <% for i in 1..2 %>
+                                <%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %>
+                            <% end %>
+                        <% else %>
+                            <% for i in 0..1 %>
+                                <%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %>
+                            <% end %>
+                        <% end %>
+                      </select>
+                    </td>
+                    <td><button id="deleteButton" onclick="deleteRow(this)">Delete</button></td>
+                  </tr>
+
+			</table>
+			</br>
+
+        <%= button_tag('Add New Row', type: 'button', onclick: "addRowAll()", name: 'addButton') %></br></br>
+        <%= button_tag('Confirm', type: 'button', onclick: "confirmation()", name: 'confirm', class: 'confirm') %>
+		
+		</form>
+
+				<% else %>
+
+					<tr class="titles">
+						<td><strong>Order ID</strong></td>
+						<td><strong>Reason</strong></td>
+                        <td><strong>Description</strong></td>
+						<td><strong>Amount</strong></td>
+                        <td><strong>Statement Date</strong></td>
+					</tr>
+
+					<%  @idx = -1
+						@tmp_o = "orderid["
+						@tmp_r = "reason["
+						@tmp_a = "amount["
+
+						@tmp_other = "other["
+
+                        @statement = "statement_dt["
+
+                        @row_id = "id["
+
+						@info.each do |data| %>
+						<tr>
+
+							<td><%= text_field_tag(@tmp_o + @idx.to_s + "]", data[1], class: "row") %></td>
+							<td><select name=<%= @tmp_r + @idx.to_s + "]"%> onchange="other(this.value,this);" class="row">
+
+								<% @reasons.each do |reason| %>
+									<%= options_for_select([reason[1]], data[2]) %>
+								<% end %>
+
+								</select>
+                            </td>
+
+                              <td><%if data[4] != ""%>
+                                    <%= text_field_tag(@tmp_other + @idx.to_s + "]",data[4] ,class: "others", style: 'display:block;') %>
+                                <% else %>
+                                    <%= text_field_tag(@tmp_other + @idx.to_s + "]",data[4] ,class: "others", style: 'display:none;') %>
+                                <% end %>
+                              </td>
+
+							<td><%= text_field_tag(@tmp_a + @idx.to_s + "]", "$ " + data[3], class: "row") %></td>
+                            <td>
+                              <select name= <%=@statement + @idx.to_s + "]"%>>
+                                <% if Date.parse(data[7]).to_date.day > 11 %>
+                                    <% for i in 1..2 %>
+                                        <%= options_for_select([(Date.parse(data[7]).to_date>>i).strftime('%B %Y')], Date.parse(data[6]).to_date.strftime('%B %Y')) %>
+                                    <% end %>
+                                <% else %>
+                                    <% for i in 0..1 %>
+                                        <%= options_for_select([(Date.parse(data[7]).to_date>>i).strftime('%B %Y')], Date.parse(data[6]).to_date.strftime('%B %Y')) %>
+                                    <% end %>
+                                <% end %>
+                              </select>
+                            </td>
+							<td><%= button_tag("Delete", {class: "deleteButton", type:'submit', name:"delete", value:data[0]}) %></td>
+                            <td><%= text_field_tag(@row_id + @idx.to_s + "]",data[0], style: 'display:none;') %></td>
+							
+						</tr>
+					<% 
+							@idx = @idx - 1
+						end %>
+
+						<tr id = "newInfo">
+							<td><input id="in" type="text" name="orderid[0]" class="newRow"></td>
+							<td>
+                                <select name="reason[0]" onchange="other(this.value, this);" id="otherLabel">
+								    <% @reasons.each do |reason| %>
+									    <%= options_for_select([reason[1]]) %>
+								    <% end %>
+                                </select>
+                            </td>
+							<td><input name="other[0]" type="text" class="otherID" style='display:none;'></td>
+							<td><input type="text" name="amount[0]" class="newRow"></td>
+                            <td>
+                              <select name="statement_dt[0]">
+                                <% if Date.today.day > 11 %>
+                                    <% for i in 1..2 %>
+                                        <%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %>
+                                    <% end %>
+                                <% else %>
+                                    <% for i in 0..1 %>
+                                        <%= options_for_select([(Date.today>>i).strftime('%B %Y')]) %>
+                                    <% end %>
+                                <% end %>
+                              </select>
+                            </td>
+							<td><button id="deleteButton" onclick="deleteRow(this)">Delete</button></td>
+						</tr>
+
+			</table>
+			</br>
+
+            <%= button_tag('Add New Row', type: 'button', onclick: "addRow()", name: 'addButton') %></br></br>
+			<%= button_tag('Confirm', type: 'button', onclick: "confirmation()", name: 'confirm', class: 'confirm') %>
+
+		</form>
+
+				<% end %>
+	</body>
+<p></p>
+</html>

@@ -1,0 +1,45 @@
+// Place all the styles related to the ManualCharges controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+.box {
+  margin-left: 7%;
+  width: 80%;
+  padding-bottom: 15px;
+}
+td {
+  //border: solid;
+}
+
+#columns {
+  //border-style: solid;
+  padding-left: 15px;
+  padding-bottom: 8px;
+}
+
+#newCols {
+  padding-bottom: 8px;
+}
+
+.button {
+  position: absolute;
+  right: 50px;
+}
+
+.titles {
+  font-size: 20px;
+}
+
+.head {
+  text-align: center;
+}
+
+#notify_insert_update {
+  text-align: left;
+  background-color: #00CC66;
+}
+
+#notify_delete {
+  text-align: left;
+  background-color: #CC0000;
+  color: white;
+}

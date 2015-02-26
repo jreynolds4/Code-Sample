@@ -1,0 +1,29 @@
+// Place all the styles related to the PrintReturn controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+.titles th{
+  font-size: 20px;
+}
+
+#myForm.print_return_form {
+  margin-top: 30px;
+  text-align: center;
+}
+.returns {
+  text-align: center;
+}
+.vendor_names {
+  text-align: left;
+  padding-left: 22%;
+}
+h1 {
+  text-align: center;
+}
+
+th {
+  font-size: 80px;
+}
+
+.class_wrapper {
+ margin-left: 15%;
+}
